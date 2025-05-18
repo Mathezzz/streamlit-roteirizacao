@@ -1,0 +1,9 @@
+# Ignorar secrets locais
+.streamlit/secrets.toml
+
+# Ignorar arquivos temporários
+*.pyc
+__pycache__/
+
+# Ignorar arquivos de ambiente
+.env
