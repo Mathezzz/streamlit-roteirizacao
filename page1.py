@@ -21,6 +21,25 @@ if "rota_calculada" not in st.session_state:
 if "erro" not in st.session_state:
     st.session_state["erro"] = None
 
+with st.expander("Breve tutorial"):
+    st.write('''
+        No primeiro campo de entrada coloque o ponto de Origem, de onde sairia a carga
+        
+        Formato esperado: (lat, long) Exemplo: -23.5505, -46.6333
+        
+        ---
+        
+        
+        No segundo campo de entrada, coloque os pontos de destino.
+        
+        Adicione mais pontos separando as coordenadas de lat, long com ";"
+        
+        Formato esperado: (lat1, long1; lat2, long2, lat3, long3)
+        
+        Exemplo: -23.5510, -46.6400; -23.5600, -46.6200
+    ''')
+    st.write("🚚")
+
 # Inputs
 origem = st.text_input("Origem (lat, lon)", key="input_origem")
 destinos = st.text_area("Destinos (lat, lon separados por ';')", key="input_destinos")
