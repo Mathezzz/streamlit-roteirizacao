@@ -20,6 +20,9 @@ if "rota_calculada" not in st.session_state:
     st.session_state["rota_calculada"] = False
 if "erro" not in st.session_state:
     st.session_state["erro"] = None
+if "n_destinos" not in st.session_state:
+    st.session_state["n_destinos"] = 1
+
 
 with st.expander("Breve tutorial"):
     st.write('''
@@ -40,9 +43,27 @@ with st.expander("Breve tutorial"):
     ''')
     st.write("🚚")
 
+st.subheader("Destinos")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("Adicionar destino"):
+        st.session_state["n_destinos"] += 1
+
+with col2:
+    if st.button("Remover destino"):
+        if st.session_state["n_destinos"] > 1:
+            st.session_state["n_destinos"] -= 1
+
+st.write(f"Quantidade de destinos: {st.session_state["n_destinos"]}")
+
 # Inputs
 origem = st.text_input("Origem (lat, lon)", key="input_origem")
-destinos = st.text_area("Destinos (lat, lon separados por ';')", key="input_destinos")
+# destinos = st.text_area("Destinos (lat, lon separados por ';')", key="input_destinos")
+
+for i in range(st.session_state["n_destinos"]):
+    st.text_input(f"Destino {i+1}", key=f"destino_{i}")
 
 def calcular_rota():
     try:
