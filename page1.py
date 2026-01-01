@@ -49,7 +49,8 @@ col1, col2 = st.columns(2)
 
 with col1:
     if st.button("Adicionar destino"):
-        st.session_state["n_destinos"] += 1
+        if st.session_state["n_destinos"] < 7:
+            st.session_state["n_destinos"] += 1
 
 with col2:
     if st.button("Remover destino"):
@@ -65,7 +66,25 @@ origem = st.text_input("Origem (lat, lon)", key="input_origem")
 for i in range(st.session_state["n_destinos"]):
     st.text_input(f"Destino {i+1}", key=f"destino_{i}")
 
+def get_destinos_from_state():
+    destinos = []
+    for i in range(st.session_state["n_destinos"]):
+        value = st.session_state.get(f"destino_{i}", "")
+
+        if value is None:
+            continue
+        
+        value = value.strip()
+        if value:
+            destinos.append(value)
+    return destinos
+
 def calcular_rota():
+
+    destinos = get_destinos_from_state()
+    if len(destinos) == 0:
+        raise Exception("Informe pelo menos 1 destino.")
+    
     try:
         coords = [tuple(map(float, origem.split(",")))] + parse_coords(destinos)
         matrix = build_distance_matrix(coords, st.secrets["google"]["api_key"])
@@ -80,6 +99,7 @@ def calcular_rota():
     except Exception as e:
         st.session_state["rota_calculada"] = False
         st.session_state["erro"] = str(e)
+
 
 # Botão que dispara o cálculo
 st.button("Calcular rota", on_click=calcular_rota)
