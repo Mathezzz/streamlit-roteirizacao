@@ -82,10 +82,13 @@ def calcular_rota():
 
     destinos = get_destinos_from_state()
     if len(destinos) == 0:
-        raise Exception("Informe pelo menos 1 destino.")
+        st.toast("Nenhum destino informado.", icon="⚠️")
     
     try:
         coords = [tuple(map(float, origem.split(",")))]
+    except Exception:
+        st.toast("Origem inválida. Informe a origem com o formato: lat,long", icon="⚠️")
+    try:
         destinos_coords = parse_coords(";".join(destinos))
         coords += destinos_coords
 
@@ -101,6 +104,7 @@ def calcular_rota():
     except Exception as e:
         st.session_state["rota_calculada"] = False
         st.session_state["erro"] = str(e)
+        st.toast("Formato dos destinos inválidos. Cheque se os destinos possuem formato: lat,long", icon="⚠️")
 
 
 # Botão que dispara o cálculo
@@ -112,6 +116,7 @@ if st.session_state["erro"]:
 
 # Mostrar resultados se a rota foi calculada
 if st.session_state["rota_calculada"]:
+    st.success("Rota calculada com sucesso!")
     st.write("🔀 **Ordem otimizada de visita:**", " → ".join(map(str, st.session_state["route"])))
     
     # Recriar o mapa no momento da visualização
@@ -121,4 +126,9 @@ if st.session_state["rota_calculada"]:
     if st.button("🔁 Limpar rota"):
         for key in ["coords", "route", "rota_calculada", "erro"]:
             st.session_state.pop(key, None)
-        st.experimental_rerun()
+        
+        for key in list(st.session_state.keys()):
+            if key.startswith("dest_"):
+                st.session_state.pop(key)
+
+        st.session_state["n_destinos"] = 1
