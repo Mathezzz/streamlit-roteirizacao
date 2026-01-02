@@ -13,7 +13,7 @@ from utils.solver import solve_tsp
 from utils.map_builder import create_route_map
 
 st.set_page_config("Roteirização", layout="wide")
-st.title("Roteirização Logística")
+st.title("Roteirização Logística 🗺️📍🚚")
 
 # Inicializar estados
 if "rota_calculada" not in st.session_state:
@@ -26,22 +26,26 @@ if "n_destinos" not in st.session_state:
 
 with st.expander("Breve tutorial"):
     st.write('''
+        ## Origem
         No primeiro campo de entrada coloque o ponto de Origem, de onde sairia a carga
         
         Formato esperado: (lat, long) Exemplo: -23.5505, -46.6333
         
         ---
         
+        ## Destinos
+        Então, utilizando os botões "Adicionar destino" e "Remover destino", defina quantos destinos deseja dar entrada
         
-        No segundo campo de entrada, coloque os pontos de destino.
+        Nos campos de entrada criados, coloque os pontos de destino.
         
-        Adicione mais pontos separando as coordenadas de lat, long com ";"
-        
-        Formato esperado: (lat1, long1; lat2, long2, lat3, long3)
-        
-        Exemplo: -23.5510, -46.6400; -23.5600, -46.6200
+        Formato esperado em cada linha: (lat1, long1)
+
+        - Linhas em branco serão ignoadas        
     ''')
     st.write("🚚")
+
+# Inputs
+origem = st.text_input("Origem (lat, lon)", key="input_origem")
 
 st.subheader("Destinos")
 
@@ -58,9 +62,6 @@ with col2:
             st.session_state["n_destinos"] -= 1
 
 st.write(f"Quantidade de destinos: {st.session_state["n_destinos"]}")
-
-# Inputs
-origem = st.text_input("Origem (lat, lon)", key="input_origem")
 
 for i in range(st.session_state["n_destinos"]):
     st.text_input(f"Destino {i+1}", key=f"destino_{i}")
