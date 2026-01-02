@@ -61,7 +61,6 @@ st.write(f"Quantidade de destinos: {st.session_state["n_destinos"]}")
 
 # Inputs
 origem = st.text_input("Origem (lat, lon)", key="input_origem")
-# destinos = st.text_area("Destinos (lat, lon separados por ';')", key="input_destinos")
 
 for i in range(st.session_state["n_destinos"]):
     st.text_input(f"Destino {i+1}", key=f"destino_{i}")
@@ -86,7 +85,10 @@ def calcular_rota():
         raise Exception("Informe pelo menos 1 destino.")
     
     try:
-        coords = [tuple(map(float, origem.split(",")))] + parse_coords(destinos)
+        coords = [tuple(map(float, origem.split(",")))]
+        destinos_coords = parse_coords(";".join(destinos))
+        coords += destinos_coords
+
         matrix = build_distance_matrix(coords, st.secrets["google"]["api_key"])
         route = solve_tsp(matrix)
 
