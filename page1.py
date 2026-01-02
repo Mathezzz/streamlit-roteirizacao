@@ -89,6 +89,7 @@ def calcular_rota():
         coords = [tuple(map(float, origem.split(",")))]
     except Exception:
         st.toast("Origem inválida. Informe a origem com o formato: lat,long", icon="⚠️")
+
     try:
         destinos_coords = parse_coords(";".join(destinos))
         coords += destinos_coords
@@ -101,7 +102,6 @@ def calcular_rota():
         st.session_state["route"] = route
         st.session_state["rota_calculada"] = True
         st.session_state["erro"] = None
-
     except Exception as e:
         st.session_state["rota_calculada"] = False
         st.session_state["erro"] = str(e)
@@ -112,8 +112,8 @@ def calcular_rota():
 st.button("Calcular rota", on_click=calcular_rota)
 
 # Se deu erro
-if st.session_state["erro"]:
-    st.error(f"Erro: {st.session_state['erro']}")
+# if st.session_state["erro"]:
+#     st.error(f"Erro: {st.session_state['erro']}")
 
 # Mostrar resultados se a rota foi calculada
 if st.session_state["rota_calculada"]:
