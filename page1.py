@@ -7,10 +7,13 @@ Created on Sun May 18 10:43:23 2025
 
 import streamlit as st
 from streamlit_folium import st_folium
+
+from utils.geocoder import resolve_location
 from utils.parser import parse_coords
 from utils.distance import build_distance_matrix
 from utils.solver import solve_tsp
 from utils.map_builder import create_route_map
+from utils.destino_validator import resolve_destinos_individuais
 
 st.set_page_config("Roteirização", layout="wide")
 st.title("Roteirização Logística 🗺️📍🚚")
@@ -22,6 +25,8 @@ if "erro" not in st.session_state:
     st.session_state["erro"] = None
 if "n_destinos" not in st.session_state:
     st.session_state["n_destinos"] = 1
+if "destino_erros" not in st.session_state:
+    st.session_state["destino_erros"] = {}
 
 
 with st.expander("Breve tutorial"):
@@ -29,7 +34,7 @@ with st.expander("Breve tutorial"):
         ## Origem
         No primeiro campo de entrada coloque o ponto de Origem, de onde sairia a carga
         
-        Formato esperado: (lat, long) Exemplo: -23.5505, -46.6333
+        Formato esperado: Endereço ou (lat, long) Exemplo: Avenida Alberto Maranhão, 100, Mossoró; Ou: -23.5505, -46.6333
         
         ---
         
@@ -38,14 +43,14 @@ with st.expander("Breve tutorial"):
         
         Nos campos de entrada criados, coloque os pontos de destino.
         
-        Formato esperado em cada linha: (lat1, long1)
+        Formato esperado em cada linha: Endereço ou (lat, long) Exemplo: Avenida Alberto Maranhão, 100, Mossoró; Ou: -23.5505, -46.6333
 
         - Linhas em branco serão ignoadas        
     ''')
     st.write("🚚")
 
 # Inputs
-origem = st.text_input("Origem (lat, lon)", key="input_origem")
+origem = st.text_input("Origem: Digite sua localização ou passe uma lat, long", key="input_origem")
 
 st.subheader("Destinos")
 
@@ -66,33 +71,50 @@ st.write(f"Quantidade de destinos: {st.session_state["n_destinos"]}")
 for i in range(st.session_state["n_destinos"]):
     st.text_input(f"Destino {i+1}", key=f"destino_{i}")
 
+    erro = st.session_state.get("destino_erros", {}).get(i)
+    if erro:
+        st.caption(f"⚠️ {erro}")
+
 def get_destinos_from_state():
     destinos = []
     for i in range(st.session_state["n_destinos"]):
-        value = st.session_state.get(f"destino_{i}", "")
+        key = f"destino_{i}"
+        value = st.session_state.get(key, "")
 
-        if value is None:
-            continue
-        
-        value = value.strip()
-        if value:
-            destinos.append(value)
+        if value and value.strip():
+            destinos.append({
+                "index": i,
+                "label": f"Destino {i+1}",
+                "value": value.strip()
+            })
     return destinos
 
 def calcular_rota():
 
+    st.session_state["destino_erros"] = {}
+
+    _origem = [{"index": 0, "label": "input_origem", "value": origem}]
+    origem_result = resolve_destinos_individuais(_origem)
+
+    if not origem_result["ok"]:
+        st.toast(f"Origem: {origem_result['error']}", icon="⚠️")
+        return
+
+    origem_coords = origem_result["coords"]
+
     destinos = get_destinos_from_state()
     if len(destinos) == 0:
         st.toast("Nenhum destino informado.", icon="⚠️")
+
+    resultado_destinos = resolve_destinos_individuais(destinos)    
+    
+    if not resultado_destinos["ok"]:
+        for erro in resultado_destinos["errors"]:
+            st.session_state["destino_erros"][erro["index"]] = erro["error"]
+        return
     
     try:
-        coords = [tuple(map(float, origem.split(",")))]
-    except Exception:
-        st.toast("Origem inválida. Informe a origem com o formato: lat,long", icon="⚠️")
-
-    try:
-        destinos_coords = parse_coords(";".join(destinos))
-        coords += destinos_coords
+        coords = origem_coords + resultado_destinos["coords"]
 
         matrix = build_distance_matrix(coords, st.secrets["google"]["api_key"])
         route = solve_tsp(matrix)

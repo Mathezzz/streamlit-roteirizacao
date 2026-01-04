@@ -74,13 +74,13 @@ def resolve_location(input_str: str, api_key: str) -> tuple[float, float]:
         if not (-90 <= lat <= 90 and -180 <= lon <= 180):
             raise ValueError
 
-        return lat, lon
+        return {"ok": True,"coords": (lat, lon)}
 
     except ValueError:
         pass
 
     try:
-        return geocode_address(input_str, api_key)
+        return {"ok": True, "coords": geocode_address(input_str, api_key)}
 
     except GeocodingError as e:
         raise LocationResolutionError(str(e))
